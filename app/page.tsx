@@ -1,9 +1,13 @@
-import Image from "next/image";
+import { Button } from "@/components/ui/button";
 
-export default function Home() {
-  return (
-   <div>
-    Hello NEtflix Clone
-   </div>
-  );
+
+
+export default function Home (){
+    return (
+  <div>
+    <Button >
+      Ok
+    </Button>
+  </div>
+    )
 }
