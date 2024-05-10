@@ -1,13 +1,18 @@
 "use client"
 
-import Login from "@/components/ui/auth/Login";
+import Login from "@/components/auth/Login";
+import MangeAccount from "@/components/auth/mange-account";
 import { useGlobalContext } from "@/context/Context"
+import { useSession } from "next-auth/react";
 
 
 const BrowsePage = () => {
   const {account} =  useGlobalContext();
-  if( account === null)
-    return <Login />
+  const {data:session} = useSession()
+
+  
+  if(session === null) return <Login />
+  if(account === null) return <MangeAccount />
   return (
     <div>
       Bwrwse

@@ -1,10 +1,8 @@
+import { redirect } from "next/dist/server/api-utils"
+
 const HomePage = () => {
 
-  return (
-    <div>
-      home
-    </div>
-  )
+  return redirect('/browse')
 }
 
 export default HomePage

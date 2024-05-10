@@ -1,7 +1,7 @@
 import Image from "next/image"
-import { Button } from "../button"
-import { Github } from "lucide-react"
-
+import { Button } from "@/components/ui/button"
+import {  Github } from "lucide-react"
+import {signIn} from "next-auth/react"
 
 const Login = () => {
   return (
@@ -13,12 +13,13 @@ const Login = () => {
         left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-md px-8">
           <div className="flex h-full items-center justify-center">
             <Button className="mt-4  flex items-center gap-2 w-full h-[56px]
-              bg-red-600 text-white hover:bg-white hover:text-black rounded" variant={"outline"}>
-            <Github className="w-8 h-8  " />
+              bg-red-600 text-white hover:bg-white hover:text-black rounded"
+               variant={"outline"} 
+               onClick={() => signIn("github")} >
+            <Github className="w-8 h-8 " />
             Sign in GitHub
           </Button>
           </div>
-        
         </div>
     </div>
   )
