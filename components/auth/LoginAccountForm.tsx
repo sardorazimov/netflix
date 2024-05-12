@@ -1,14 +1,60 @@
+"use client";
+
+import { AccountProps, AccountResponse } from '@/types/route';
+import axios from 'axios';
 import { Loader2 } from 'lucide-react';
 import React, { useState } from 'react'
 import PinInput from 'react-pin-input';
+import { toast } from '../ui/use-toast';
+import { useGlobalContext } from '@/context/Context';
+import { usePathname, useRouter } from 'next/navigation';
 
-const LoginAccountForm = () => {
+interface LoginAccountFormProps{
+  currentAccount:AccountProps | null
+}
+
+const LoginAccountForm = ({
+  currentAccount
+}:LoginAccountFormProps) => {
   const [error, setError] = useState(false);
   const [pin, setPin] = useState("")
+
   const [isLoading, setIsLoading] = useState(false);
-  const onSubmit = (value:string) => {
+  const {setAccount} = useGlobalContext()
+
+  const pathname = usePathname();
+  const router = useRouter()
+
+  //console.log(pathname)
+  const onSubmit = async (value:string) => {
     setIsLoading(true)
-    console.log(value)
+    try{
+      const {data} =  await axios.post<AccountResponse>(`/api/account/login`, {
+        uid:currentAccount?.uid,
+        accountId: currentAccount?._id,
+        pin: value,
+
+      })
+      if(data.success){
+        setAccount(data.data as AccountProps);
+        sessionStorage.setItem("account",JSON.stringify(data.data));
+        router.push(pathname);
+        return toast({
+          title: "Account unBlocked",
+          description: "Your Account has benn unblocked seccessFull",
+        })
+      }else{
+        setError(true)
+      }
+    }catch(error) {
+      return toast({
+        title:"Error",
+        description:"An error occurred while loging in",
+        variant:"destructive"
+      })
+    }finally{
+      setIsLoading(false)
+    }
   }
   return (
    <>

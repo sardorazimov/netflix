@@ -12,10 +12,10 @@ export interface ContextType {
   }
   
   export interface AccountProps {
-    _id: string
-    uid: string
-    name: string
-    pin: string
+    _id: string,
+    uid: string,
+    name: string,
+    pin: string,
   }
   
   export interface ChildProps {
@@ -28,7 +28,7 @@ export interface ContextType {
   }
   
   export interface AccountResponse extends AxiosResponse {
-    data: AccountProps[] | AccountProps
+    data: AccountProps[] | AccountProps;
   }
   
   export interface MenuItemProps {

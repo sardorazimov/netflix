@@ -7,8 +7,25 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "../ui/input"
 import { Button } from "../ui/button"
 import PinInput from "react-pin-input"
+import axios from "axios"
+import { AccountProps, AccountResponse } from "@/types/route"
+import { Dispatch, SetStateAction } from "react"
+import { toast } from "../ui/use-toast"
 
-const CreateAccountForm = () => {
+
+interface CreateAccountFormProps{
+  uid:string;
+  setOpen: Dispatch<SetStateAction<boolean>>;
+  setAccount: Dispatch<SetStateAction<AccountProps []>>;
+  account:AccountProps[];
+}
+
+const CreateAccountForm = ({
+  uid,
+  setOpen,
+  setAccount,
+  account
+ }:CreateAccountFormProps) => {
     const form = useForm<z.infer<typeof createAccountSchema>>({
         resolver:zodResolver(createAccountSchema),
         defaultValues:{
@@ -18,7 +35,31 @@ const CreateAccountForm = () => {
     })
     const { isValid, isSubmitted} = form.formState
     async function onSubmit(values:z.infer<typeof createAccountSchema>){
-        console.log(values)
+        try{
+          const {data} =  await axios.post <AccountResponse>("api/account",{...values,uid})
+          if(data.success){
+            setOpen(false)
+            form.reset();
+            setAccount([...account,data.data as AccountProps])
+            return  toast({
+              title: "Account create successfull",
+              description:" You Account create has been successFull",
+              variant: "destructive"
+            })
+
+          }else{
+           return toast ({
+            title:"Error",
+            description: data.message
+
+           })
+          }
+        }catch(error) {
+          return toast({
+            title:"Error",
+            description: "Error you create account Please try again"
+          })
+        }
     }
   return (
    <> 
