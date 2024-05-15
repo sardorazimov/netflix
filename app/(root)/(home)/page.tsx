@@ -1,9 +1,14 @@
-import { redirect } from "next/dist/server/api-utils"
+"use client"
+import { redirect } from "next/navigation"
+
 
 const HomePage = () => {
-
+ redirect("./browse")
   return (
-    <div></div>
+   
+    <div>
+      Hello Netflix Clone
+    </div>
   )
 }
 

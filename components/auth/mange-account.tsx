@@ -1,136 +1,158 @@
-'use client'
+"use client";
 
-import { Delete, LockKeyhole, Trash } from "lucide-react"
-import Image from "next/image"
-import { useEffect, useState } from "react"
-import { Button } from "../ui/button"
-import { Dialog, DialogContent } from "../ui/dialog"
-import LoginAccountForm from "./LoginAccountForm"
-import CreateAccountForm from "./CreateAccountForm"
-import { AccountResponse, AccountProps } from "@/types/route"
-import axios from "axios"
-import { useSession } from "next-auth/react"
-import { toast } from "../ui/use-toast"
+import Image from "next/image";
+import {useEffect, useState} from "react";
+import {LockKeyhole, Trash2} from "lucide-react";
+import {Button} from "@/components/ui/button";
+import {Dialog, DialogContent} from "@/components/ui/dialog";
+import LoginAccountForm from "@/components/auth/LoginAccountForm";
+import CreateAccountForm from "./CreateAccountForm";
+import {AccountProps, AccountResponse} from "@/types/route";
+import axios from "axios";
+import {useSession} from "next-auth/react";
+import {toast} from "@/components/ui/use-toast";
+import Loader from "@/components/Loader";
 
+const ManageAccount = () => {
+  const [isDelete, setIsDelete] = useState<boolean>(false)
+  const [open, setOpen] = useState(false)
+  const [state, setState] = useState<"login" | "create">("create")
+  const [accounts, setAccounts] = useState<AccountProps[]>([]);
+  const [currentAccount, setCurrentAccount] = useState<AccountProps | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
+  const {data: session}: any = useSession()
 
-const MangeAccount = () => {
-
-  const [ isDelete, setIsDelete ] = useState<boolean>(false);
-  const [ open, setOpen ] = useState(false);
-
-  const [ control,setControl ] = useState< "Login" | "Create">("Create");
-  const [account,setAccount ] = useState<AccountProps[]>([]);
-  
-  const {data:session }: any = useSession();
-  const [currentAccount, setCurrentAccount] = useState<AccountProps  | null>(null)
-
- const onDelete = async (id:string) => {
-   try{
-    const isConfirm =  confirm('Are you sure you want to delete this account?');
-    if(isConfirm){
-      const {data} = await axios.delete<AccountResponse>(`/api/account?id=${id})`);
-      if(data.success){
-        setAccount(account.filter(account => account._id !== id))
-        return toast({
-          title:"Deleted",
-          description:"Your account has ben deleted successFull!",
-        })
-      }else{
-        return toast({
-          title:"Error",
-          description:"An error occurred deleting your account",
-        })
-      }
-    }
-   }catch (error){
-    return toast({
-      title:"Error",
-      description:"Your delete account successFull",
-      variant:"destructive",
-    })
-   }
- }
   useEffect(() => {
-    const getAllAccounts = async () =>{
-      try{
-        const {data}  = await axios.get <AccountResponse>(`/api/account?uid=${session?.user?.uid}`)
-        console.log(data)
-        data.success && setAccount(data.data as AccountProps[]);
-      }catch(error) {
-       return toast({
-        title:"Error",
-        description: "You create account error please try again ",
-        variant:"destructive",
-       })
+    const getAllAccounts = async () => {
+      try {
+        const {data} = await axios.get<AccountResponse>(`/api/account?uid=${session.user.uid}`)
+        data.success && setAccounts(data.data as AccountProps[]);
+      } catch (e) {
+        return toast({
+          title: "Error",
+          description: "An error occurred while fetching your accounts",
+          variant: "destructive"
+        })
+      } finally {
+        setIsLoading(false)
       }
     }
+
     getAllAccounts()
-  },[])
+  }, [session])
 
 
+  const onDelete = async (id: string) => {
+    try {
+      const isConfirmed = confirm("Are you sure you want to delete this account?")
+      if (isConfirmed) {
+        const {data} = await axios.delete<AccountResponse>(`/api/account?id=${id}`)
+        if (data.success) {
+          setAccounts(accounts.filter(account => account._id !== id))
+          return toast({
+            title: "Account deleted successfully",
+            description: "Your account has been deleted successfully",
+          })
+        } else {
+          return toast({
+            title: "Error",
+            description: data.message,
+            variant: "destructive"
+          })
+        }
+      }
+    } catch (e) {
+      return toast({
+        title: "Error",
+        description: "An error occurred while deleting your account",
+        variant: "destructive"
+      })
+    }
+  }
+
+  if (isLoading) return <Loader/>
 
   return (
-    <div className='min-h-screen flex justify-center flex-col items-center relative'>
-      <div className='flex justify-center flex-col items-center'>
-        <h1 className='text-white font-bold text-5xl my-12'>
-          Whos Watching
-        </h1>
-        <ul className='flex p-0 my-12'>
-          {account.map(() => (
-              <li key={session._id} 
-               onClick={() => { 
-               if(isDelete) return
-               setOpen(true);
-               setControl("Login")
-               setCurrentAccount(account)
-              }}
-               className='max-w-[200px] w-[155px] cursor-pointer flex flex-col items-center gap-3 min-w-[200px]'>
-            <div className="relative">
-             <div className="max-w-[200px] rounded min-w-[84px] max-h-[200px] min-h-[84px] object-cover w-[155px] h-[155px] relative">
-               <Image  src={"/smile.png"} alt="account" fill/>
-             </div>
-             {isDelete ? (
-              <div onClick={() => onDelete(account._id)} className="absolute transform bottom-0 z-10 cursor-pointer">
-                <Trash  className="text-red-600 w-8 h-8"/>
-              </div>
-             ): null}
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="font-mono font-bold text-xl">
-                {session.name}
-              </span>
-              <LockKeyhole className="h-8 w-8" />
-            </div> 
-          </li>
-          ))}
-          {account && account.length < 4 ? (
-              <li onClick={() => { setOpen(true); setControl('Create')} }
-             className="border  bg-slate-700 font-bold text-xl w-[155px]
-            border-gray-600 max-w-[200px] rounded min-w-[84px] max-h-[200px] min-h-[84px]
-             flex cursor-pointer justify-center items-center">Add Account</li>
-          ):null}
-          
+    <div className={"min-h-screen flex justify-center flex-col items-center relative"}>
+
+      <div className={"flex justify-center flex-col items-center"}>
+        <h1 className={"text-white font-bold text-5xl my-12"}>Who's Watching?</h1>
+
+        <ul className={"flex p-0 my-12 gap-4"}>
+          {isLoading ? null : (
+            <>
+              {accounts && accounts.map(account => (
+                <li
+                  key={account._id}
+                  onClick={() => {
+                    if (isDelete) return
+                    setOpen(true)
+                    setState("login")
+                    setCurrentAccount(account)
+                  }}
+                  className={"max-w-[200px] w-[155px] cursor-pointer flex flex-col items-center gap-3 min-w-[200px]"}
+                >
+                  <div className="relative">
+                    <div
+                      className={"max-w-[200px] rounded min-w-[84px] max-h-[200px] min-h-[84px] object-cover w-[155px] h-[155px] relative"}>
+                      <Image
+                        src={"/smile.png"}
+                        alt={"account"}
+                        fill
+                      />
+                    </div>
+                    {isDelete ? (
+                      <div
+                        className={"absolute transform bottom-0 z-10 cursor-pointer"}
+                        onClick={() => onDelete(account._id)}
+                      >
+                        <Trash2 className={"w-8 h-8 text-red-600"}/>
+                      </div>
+                    ) : null}
+                  </div>
+                  <div className={"flex items-center gap-1"}>
+                    <span className={"font-mono font-bold text-xl"}>{account.name}</span>
+                    <LockKeyhole/>
+                  </div>
+                </li>
+              ))}
+              {accounts && accounts.length < 4 ? (
+                <li
+                  onClick={() => {
+                    setOpen(true)
+                    setState("create")
+                  }}
+                  className={"border bg-slate-800 font-bold text-xl border-black max-w-[200px] rounded min-w-[84px] max-h-[200px] min-h-[84px] w-[155px] h-[155px] cursor-pointer flex justify-center items-center"}
+                >
+                  Add account
+                </li>
+              ) : null}
+            </>
+          )}
         </ul>
-        <Button onClick={() => setIsDelete(prev => !prev)}
-         className="border border-gray-100 cursor-pointer tracking-wide inline-flex
-          text-sm px-[1.5em] py-[0.5em] bg-transparent rounded-none hover:bg-white hover:text-gray-700" >
-          Manage Account
-         </Button>
+
+        <Button
+          onClick={() => setIsDelete(prev => !prev)}
+          className={"bg-transparent rounded-none hover:bg-transparent !text-white border border-gray-100 cursor-pointer tracking-wide inline-flex text-sm px-[1.5em] py-[0.5em]"}
+        >
+          Manage Profiles
+        </Button>
       </div>
+
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
-          {control === 'Login' && <LoginAccountForm currentAccount={currentAccount} />}
-          {control === 'Create' && <CreateAccountForm 
-           uid={session?.user?.uid} 
-           setOpen={setOpen}
-           setAccount={setAccount} 
-           account={account}
-           />}
+          {state === "login" && <LoginAccountForm currentAccount={currentAccount}/>}
+          {state === "create" && <CreateAccountForm
+              uid={session?.user?.uid}
+              setOpen={setOpen}
+              setAccounts={setAccounts}
+              accounts={accounts}
+          />}
         </DialogContent>
       </Dialog>
     </div>
-  )
-}
+  );
+};
 
-export default MangeAccount
+export default ManageAccount;
